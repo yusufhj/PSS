@@ -1,0 +1,511 @@
+{% extends 'dashboard.html' %}
+
+{% block title %}Dashboard - Parking Surveillance System{% endblock %}
+
+{% block content %}
+
+
+<style>
+    
+  #parking-lot {
+      position: relative;
+  
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 3%;
+      box-sizing: border-box;
+  }
+  
+  .parking-spot {
+      width: 90%;
+      margin: 1vh 0;
+      background-color: #4CAF50; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      border-radius: 4px;
+      padding: 4px;
+      box-sizing: border-box;
+      overflow: hidden; 
+  }
+  
+  .parking-spot .label {
+      font-size: 1em; 
+      font-weight: bold;
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+  }
+  
+  .parking-spot .timer {
+      font-size: 0.5em;
+      opacity: 0.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; 
+      margin-top: 2px; 
+  }
+  
+  .columns-container {
+      width: 100%;
+      height: 100%; 
+      display: flex;
+      justify-content: space-between; 
+      overflow: hidden; 
+  }
+  
+  .column {
+      position: relative; 
+      flex-grow: 1;
+      margin: 0 0.2%; 
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+  }
+  
+      
+  
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1; 
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%; 
+  overflow: auto;
+  background-color: rgba(0,0,0,0.4); 
+}
+
+.modal-content {
+  background: #1f1f2e; 
+  margin: 10% auto; 
+  padding: 20px;
+  border: 1px solid #28293d;
+  width: 30%; 
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px; 
+}
+
+.close {
+  color: #bbb;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+input[type="text"], input[type="number"], select {
+  width: calc(100% - 20px); 
+  padding: 10px;
+  margin-top: 8px;
+  border: none;
+  background: #28293d; 
+  color: #fff; 
+  border-bottom: 2px solid #e91e63; 
+}
+
+label {
+  color: #fff; 
+  display: block; 
+  margin: 15px 0 5px; 
+}
+
+button {
+  width: 100%;
+  background: linear-gradient(90deg, #e91e63, #5763e9); 
+  border: none;
+  color: white;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.ui-datepicker {
+  background: #1f1f2e;
+  border: 1px solid #28293d;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.ui-datepicker table {
+  color: #fff;
+}
+
+.ui-datepicker-header {
+  background: linear-gradient(90deg, #e91e63, #5763e9);
+  color: white;
+  border-bottom: 1px solid #28293d;
+}
+
+.ui-datepicker-prev, .ui-datepicker-next {
+  cursor: pointer;
+}
+
+.ui-datepicker td.ui-datepicker-today a {
+  background-color: #e91e63 !important;
+}
+
+.ui-datepicker-calendar tbody tr td a:hover {
+  background-color: #5763e9 !important;
+}
+
+.ui-datepicker-calendar .ui-state-active {
+  background-color: #e91e63 !important;
+  border-color: #e91e63 !important;
+}
+
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-current,
+.ui-datepicker .ui-datepicker-buttonpane button.ui-datepicker-close {
+  color: #e91e63;
+}
+
+.ui-datepicker {
+  width: auto; 
+  position: absolute; 
+  top: 100%;
+  left: 0; 
+  z-index: 1000; 
+}
+
+.ui-datepicker-unselectable.ui-state-disabled {
+  opacity: 0.5;
+}
+
+</style>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card ">
+        <div class="card-header">
+        </div>
+        <div class="card-body">
+          <h1>Reservation</h1>
+          <div id="parking-lot"></div>
+      
+          <div id="reservationModal" class="modal">
+              <div class="modal-content">
+                  <span class="close">&times;</span>
+                  <form id="reserveForm">
+                      <label for="spotId">Spot ID:</label>
+                      <input type="text" id="spotId" readonly><br>
+                      <label for="datepicker">Date: </label>
+                      <input type="text" id="datepicker"> 
+                      <label for="timepicker">Time: </label>
+                      <select id="timepicker"></select>
+                      <br>
+                      <label for="duration">Duration (hours):</label>
+                      <input type="number" id="duration" required><br>
+      
+                      <button type="submit">Reserve</button>
+                  </form>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script>
+  $(document).ready(function() {
+    loadAbstractView(); 
+
+    $('.close').on('click', function() {
+        $('#reservationModal').hide();
+    });
+
+    $('#reserveForm').on('submit', function(event) {
+        event.preventDefault();
+        const spotId = $('#spotId').val();
+        const startTime = $('#timepicker').val(); 
+    
+        console.log(`Attempting to reserve spot: ${spotId} for ${$('#duration').val()} hours at ${startTime}`);
+        
+        reserveSpot(spotId, startTime, $('#duration').val());
+        $('#reservationModal').hide();
+    });
+    
+    $("#datepicker").datepicker({
+        minDate: 0, 
+        dateFormat: 'dd-mm-yy',
+        onSelect: function(dateText, inst) {
+            let date = $(this).datepicker('getDate'); 
+            let spotId = $('#spotId').val(); 
+            getReservedTimesForSpot(spotId, $.datepicker.formatDate('yy-mm-dd', date)); 
+        }
+    });
+
+    $('#timepicker').on('change', function() {
+        console.log('Time selected:', $(this).val()); 
+    });
+
+    function updateFreeSpotsCount() {
+        $.getJSON('/get_free_spots_count', function(data) {
+            $('#free-spots-count').text('Free Spots: '+data.free_count); 
+        }).fail(function() {
+            console.log('Error fetching the free spots count');
+        });
+    }
+    updateFreeSpotsCount(); 
+    updateParkingStatus(); 
+    setInterval(updateParkingStatus, 1000);
+    setInterval(updateFreeSpotsCount, 5000);
+});
+
+let parkingStatuses = {};
+let globalEntrance = null;
+let globalDestination = null;
+let horizontalGaps = [];
+let verticalGapsArray = [];
+let columns = [];
+
+
+
+function updateParkingStatus() {
+    $.getJSON('/get_parking_status', function(statuses) {
+        parkingStatuses = statuses;
+        for (var label in statuses) {
+            var spot = $('#spot-' + label);
+
+            updateClickableStatus(label, spot);
+        }
+    }).fail(function() {
+        console.error('Error fetching parking status');
+    });
+}
+
+function updateClickableStatus(spotId, spotDiv) {
+    const spotInfo = parkingStatuses[spotId];
+    if (spotInfo) {
+        spotDiv.on('click', function() {
+            $('#spotId').val(spotId);
+            $('#reservationModal').show();
+        });
+    } else {
+        spotDiv.off('click'); 
+    }
+}
+
+function separatePolygonsIntoColumns(polygons) {
+    polygons.sort((a, b) => Math.min(...a.points.map(point => point[0])) - Math.min(...b.points.map(point => point[0])));
+
+    let columns = [];
+    let currentColumn = [];
+    let lastMaxX = -Infinity;
+    let distances = [];
+
+    polygons.forEach((polygon, index) => {
+        if (index > 0) {
+            const prevMaxX = Math.max(...polygons[index - 1].points.map(point => point[0]));
+            const currentMinX = Math.min(...polygon.points.map(point => point[0]));
+            distances.push(currentMinX - prevMaxX);
+        }
+    });
+
+    const averageDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
+    const distanceThreshold = averageDistance * 0.85; 
+
+    polygons.forEach(polygon => {
+        const minX = Math.min(...polygon.points.map(point => point[0]));
+        if (minX - lastMaxX > distanceThreshold) {
+            if (currentColumn.length) {
+                columns.push(currentColumn);
+                distances.push(minX - lastMaxX);
+                currentColumn = [];
+            }
+        }
+        currentColumn.push(polygon);
+        lastMaxX = Math.max(...polygon.points.map(point => point[0]));
+    });
+
+    if (currentColumn.length) {
+        columns.push(currentColumn);
+    }
+
+    return columns;
+}
+
+function findGapsBetweenColumns(columns) {
+    const horizontalGaps = [];
+    
+    for (let i = 0; i < columns.length - 1; i++) {
+        const lastColumn = columns[i];
+        const nextColumn = columns[i + 1];
+
+        const lastMaxX = Math.max(...lastColumn.map(p => Math.max(...p.points.map(point => point[0]))));
+        const nextMinX = Math.min(...nextColumn.map(p => Math.min(...p.points.map(point => point[0]))));
+        
+        const lastMinX = Math.min(...lastColumn.map(p => Math.min(...p.points.map(point => point[0]))));
+        const columnWidth = lastMaxX - lastMinX;
+
+        const gap = nextMinX - lastMaxX;
+        
+        if (gap > columnWidth) {
+            const start = lastMaxX; 
+            const end = nextMinX; 
+            horizontalGaps.push({ index: i, gap, start, end });
+        }
+    }
+
+    return horizontalGaps;
+}
+
+function findGapsWithinColumns(columns) {
+    return columns.map((column, columnIndex) => {
+        const sortedSpots = column.sort((a, b) => Math.min(...a.points.map(point => point[1])) - Math.min(...b.points.map(point => point[1])));
+        const verticalGaps = [];
+
+        for (let j = 0; j < sortedSpots.length - 1; j++) {
+            const lastMaxY = Math.max(...sortedSpots[j].points.map(point => point[1]));
+            const nextMinY = Math.min(...sortedSpots[j + 1].points.map(point => point[1]));
+            const gap = nextMinY - lastMaxY;
+            const currentHeight = Math.max(...sortedSpots[j].points.map(point => point[1])) - Math.min(...sortedSpots[j].points.map(point => point[1]));
+            if (gap > currentHeight/2) {
+                verticalGaps.push({ column: columnIndex, row: j, gap });
+            }
+        }
+
+        return verticalGaps;
+    });
+}
+
+
+
+function loadAbstractView() {
+    $.getJSON('/load_annotations', function(data) {
+        columns = separatePolygonsIntoColumns(data.polygons);
+        horizontalGaps = findGapsBetweenColumns(columns);
+        verticalGapsArray = findGapsWithinColumns(columns);
+
+        globalEntrance = data.entrance;
+        globalDestination = data.destination;
+
+        drawAbstractView(columns, horizontalGaps, verticalGapsArray);
+
+    }).fail(function() {
+        console.error('Error loading annotations');
+    });
+}
+
+function drawAbstractView(columns, horizontalGaps, verticalGapsArray) {
+    const parkingLot = $('#parking-lot').empty();
+    const columnsContainer = $('<div>').addClass('columns-container').appendTo(parkingLot);
+
+    columns.forEach((column, columnIndex) => {
+        const columnDiv = $('<div>').addClass('column').appendTo(columnsContainer);
+        
+        const verticalGaps = verticalGapsArray[columnIndex];
+        column.forEach((polygon, spotIndex) => {
+            const spotDiv = $('<div>').addClass('parking-spot').attr('id', 'spot-' + polygon.label).appendTo(columnDiv);
+            $('<span>').addClass('label').text(polygon.label).appendTo(spotDiv);
+            
+            const gapInfo = verticalGaps.find(gap => gap.row === spotIndex);
+            if (gapInfo && gapInfo.gap > 0) {
+                $('<div>').addClass('gap')
+                .css({
+                    'height': `3%`,
+                    // 'height': `${gapInfo.gap}px`,
+                })
+                .appendTo(columnDiv);
+            }
+        });
+
+    const horizontalGapInfo = horizontalGaps.find(gap => gap.index === columnIndex);
+    // Draw horizontal gaps between columns
+    if (horizontalGapInfo && horizontalGapInfo.gap > 0) {
+        $('<div>').addClass('gap')
+            .css({
+                'flex': `0 0 3%`,
+                // 'flex': `0 0 ${horizontalGapInfo.gap}px`,
+            })
+            .appendTo(columnsContainer);
+    }
+    });
+
+}
+
+function reserveSpot(spotId, startTime, duration) {
+    $.ajax({
+        url: '/reserve_spot',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ spotId: spotId, startTime: startTime, duration: parseInt(duration, 10) }),
+        success: function(response) {
+            alert('Reservation successful!');
+            updateParkingStatus();
+        },
+        error: function(response) {
+            console.error('Reservation error:', response.responseText);
+            alert('Reservation failed. Try again!');
+        }
+    });
+}
+
+function getReservedTimesForSpot(spotId, date) {
+    $.ajax({
+        url: '/get_reserved_times',
+        type: 'GET',
+        data: { spotId: spotId, date: date },
+        success: function(response) {
+            if (response.reserved_times && response.reserved_times.length) {
+                updateTimeOptions(date, response.reserved_times);
+                console.log('Reserved times:', response.reserved_times);
+            } else {
+                updateTimeOptions(date, []);
+            }
+        },
+        error: function() {
+            alert('Failed to fetch reserved times. Please try again.');
+        }
+    });
+}
+
+function updateTimeOptions(date, reservedTimes) {
+    let startTimeSelect = $('#timepicker');
+    startTimeSelect.empty();
+    let currentDate = new Date();
+
+    let selectedDate = new Date(date);
+
+    let isToday = currentDate.toDateString() === selectedDate.toDateString();
+    let startHour = isToday ? currentDate.getHours() + 1 : 0;
+
+     for (let hour = startHour; hour < 24; hour++) {
+        if (!reservedTimes.includes(hour)) {
+            let ampm = hour >= 12 ? 'PM' : 'AM';
+            let displayHour = hour % 12 === 0 ? 12 : hour % 12;
+            let optionValue = `${date}T${hour.toString().padStart(2, '0')}:00:00`;
+            let optionText = `${displayHour}:${'00'} ${ampm}`;
+            let option = $('<option>').val(optionValue).text(optionText);
+            startTimeSelect.append(option);
+        }
+    }
+}
+
+
+</script>
+{% endblock %}

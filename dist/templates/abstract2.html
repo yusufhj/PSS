@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>
+    Parking Surveillance System
+  </title>
+  <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,600,700,800" rel="stylesheet" />
+  <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='pss.css') }}" rel="stylesheet">
+</head>
+
+<body class="">
+  <div class="wrapper">
+    <div class="sidebar">
+
+      <div class="sidebar-wrapper">
+        <div class="logo">
+          <a href="javascript:void(0)" class="simple-text logo-mini">
+            PSS
+          </a>
+          <a href="javascript:void(0)" class="simple-text logo-normal">
+            Surveillance System
+          </a>
+        </div>
+        <ul class="nav">
+            <br>
+          <li>
+            <a href="{{ url_for('abstract2') }}">
+              <h5>Abstract Monitoring</h5>
+            </a>
+          </li>
+          <br>
+          <li>
+            <a href="{{ url_for('reservation2') }}">
+              <h5>Reservation</h5>
+            </a>
+          </li>
+          <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+          <li>
+            <a href="{{ url_for('sign_in') }}">
+              <h5>Logout</h5>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <div class="main-panel">
+      <nav class="navbar navbar-expand-lg navbar-absolute navbar-transparent">
+        <div class="container-fluid">
+          <div class="navbar-wrapper">
+            <div class="navbar-toggle d-inline">
+              <button type="button" class="navbar-toggler">
+                <span class="navbar-toggler-bar bar1"></span>
+                <span class="navbar-toggler-bar bar2"></span>
+                <span class="navbar-toggler-bar bar3"></span>
+              </button>
+            </div>
+          </div>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-bar navbar-kebab"></span>
+            <span class="navbar-toggler-bar navbar-kebab"></span>
+            <span class="navbar-toggler-bar navbar-kebab"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navigation">
+            <ul class="navbar-nav ml-auto">
+
+
+              <li class="separator d-lg-none"></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <div class="modal modal-search fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <input type="text" class="form-control" id="inlineFormInputGroup" placeholder="SEARCH">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <i class="tim-icons icon-simple-remove"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+{% block content %}
+<style>
+
+
+
+#parking-lot {
+    position: relative;
+
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 3%; /* Adds a border-like gap around the container */
+    box-sizing: border-box; /* Includes padding in width and height calculations */
+}
+
+.parking-spot {
+    width: 80%;
+    margin: 1vh 0;
+    background-color: #4CAF50; /* Green for free spots */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    border-radius: 4px;
+    padding: 4px; /* Reduced padding */
+    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+    overflow: hidden; /* Prevents content from overflowing */
+}
+
+.parking-spot .label {
+    font-size: 1em; /* Adjusted for space */
+    font-weight: bold;
+    white-space: nowrap; /* Keeps the label in a single line */
+    overflow: hidden; /* Ensures no overflow */
+    text-overflow: ellipsis; /* Adds ellipsis if the text is too long */
+}
+
+.parking-spot .timer {
+    font-size: 0.8em; /* Smaller font size for timer */
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds ellipsis if the text is too long */
+}
+
+.columns-container {
+    width: 100%; /* Ensures container fits within parent */
+
+    display: flex;
+    justify-content: space-between; /* Ensures columns are evenly spaced */
+    overflow: hidden; /* Prevents any child elements from overflowing */
+}
+
+.column {
+    position: relative; /* Needed to position spots correctly */
+    flex-grow: 1;
+    margin: 0; /* Adjust as needed */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+   
+.parking-spot.free {
+    background-color: #4CAF50; /* Green for free spots */
+}
+
+.parking-spot.occupied {
+    background-color: #F44336; /* Red for occupied spots */
+}
+
+.parking-spot.reserved {
+    background-color: #1515c6; /* Blue for reserved spots */
+}
+
+.parking-spot.nearest-free-spot {
+    border: 3px solid yellow !important; /* Ensure this is not being overridden */
+    background-color: lime !important; /* Change to a very noticeable color temporarily */
+    z-index: 1000; /* Ensures it is on top of other elements if overlapping occurs */
+}
+
+</style>
+<div class="row">
+  <div class="col-md-12">
+    <div class="card ">
+      <div class="card-header">
+        <div class="row">
+          <div class="col-md-10">
+            <h1 class="card-title">Abstract View</h1>
+            </div>
+            <div class="col-md-2">
+                <button onclick="getNearestFreeSpot()">Closest Spot</button>
+            </div> 
+      </div>
+      
+      <div class="card-body">
+        <div id="parking-lot"></div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+</div>
+
+
+</div>
+</div>
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="../static/js/abstract2.js" ></script>
+{% endblock %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+
+<script>
+  $(document).ready(function() {
+    $().ready(function() {
+      $sidebar = $('.sidebar');
+      $navbar = $('.navbar');
+      $main_panel = $('.main-panel');
+
+      $full_page = $('.full-page');
+
+      $sidebar_responsive = $('body > .navbar-collapse');
+      sidebar_mini_active = true;
+      white_color = false;
+
+      window_width = $(window).width();
+
+      fixed_plugin_open = $('.sidebar .sidebar-wrapper .nav li.active a p').html();
+
+
+
+      $('.fixed-plugin a').click(function(event) {
+        if ($(this).hasClass('switch-trigger')) {
+          if (event.stopPropagation) {
+            event.stopPropagation();
+          } else if (window.event) {
+            window.event.cancelBubble = true;
+          }
+        }
+      });
+
+      $('.fixed-plugin .background-color span').click(function() {
+        $(this).siblings().removeClass('active');
+        $(this).addClass('active');
+
+        var new_color = $(this).data('color');
+
+        if ($sidebar.length != 0) {
+          $sidebar.attr('data', new_color);
+        }
+
+        if ($main_panel.length != 0) {
+          $main_panel.attr('data', new_color);
+        }
+
+        if ($full_page.length != 0) {
+          $full_page.attr('filter-color', new_color);
+        }
+
+        if ($sidebar_responsive.length != 0) {
+          $sidebar_responsive.attr('data', new_color);
+        }
+      });
+
+      $('.switch-sidebar-mini input').on("switchChange.bootstrapSwitch", function() {
+        var $btn = $(this);
+
+        if (sidebar_mini_active == true) {
+          $('body').removeClass('sidebar-mini');
+          sidebar_mini_active = false;
+          blackDashboard.showSidebarMessage('Sidebar mini deactivated...');
+        } else {
+          $('body').addClass('sidebar-mini');
+          sidebar_mini_active = true;
+          blackDashboard.showSidebarMessage('Sidebar mini activated...');
+        }
+
+        var simulateWindowResize = setInterval(function() {
+          window.dispatchEvent(new Event('resize'));
+        }, 180);
+
+        setTimeout(function() {
+          clearInterval(simulateWindowResize);
+        }, 1000);
+      });
+
+      $('.switch-change-color input').on("switchChange.bootstrapSwitch", function() {
+        var $btn = $(this);
+
+        if (white_color == true) {
+
+          $('body').addClass('change-background');
+          setTimeout(function() {
+            $('body').removeClass('change-background');
+            $('body').removeClass('white-content');
+          }, 900);
+          white_color = false;
+        } else {
+
+          $('body').addClass('change-background');
+          setTimeout(function() {
+            $('body').removeClass('change-background');
+            $('body').addClass('white-content');
+          }, 900);
+
+          white_color = true;
+        }
+
+
+      });
+
+      $('.light-badge').click(function() {
+        $('body').addClass('white-content');
+      });
+
+      $('.dark-badge').click(function() {
+        $('body').removeClass('white-content');
+      });
+    });
+  });
+</script>
+
+
+</body>
+
+</html>

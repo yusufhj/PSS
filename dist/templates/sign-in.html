@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>
+    Parking Surveillance System
+  </title>
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
+
+  <link href="../static/sign.css" rel="stylesheet">
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics.js" type="module"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDdhgZzOQQA59VG4PPHZAFpZMVQQy74fZY",
+        authDomain: "parkingsystem-b73f9.firebaseapp.com",
+        projectId: "parkingsystem-b73f9",
+        storageBucket: "parkingsystem-b73f9.appspot.com",
+        messagingSenderId: "732168872512",
+        appId: "1:732168872512:web:1f93368c84b73fff3375a5",
+        measurementId: "G-NC0PW8KYE4"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const analytics = getAnalytics(app);
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const signInForm = document.querySelector('.signin form');
+        signInForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          const email = document.getElementById('email').value;
+          const password = document.getElementById('password').value;
+
+          try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            console.log('User signed in successfully:', userCredential.user);
+            
+            if (email === 'admin@gmail.com') {
+              window.location.href = '/dashboard'; // Admin dashboard
+              
+            } else {
+              window.location.href = '/abstract2'; // Other users' dashboard
+            }
+          } catch (error) {
+            console.error('Error signing in user:', error);
+            alert('Error signing in user: ' + error.message);
+          }
+        });
+      });
+    </script>
+</head>
+
+<body class="bg-gray-200">
+  <main class="main-content  mt-0">
+    <section class="signin">
+    <div class="page-header align-items-start min-vh-100">
+      <div class="container my-auto">
+        <div class="row">
+          <div class="col-lg-6 col-md-8 col-12 mx-auto">
+            <div class="card z-index-0 fadeIn3 fadeInBottom">
+              <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                <div class="bg-gradient-primary shadow-primary border-radius-lg py-3 pe-1">
+                  <h4 class="text-white font-weight-bolder text-center mt-2 mb-0">Sign in</h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <form class="text-start" action="javascript:void(0);" method="POST">
+                  <div class="input-group input-group-outline my-3">
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Email" required>
+                  </div>
+                  <div class="input-group input-group-outline mb-3">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                  </div>
+                  <div class="text-center">
+                    <button type="submit" class="btn bg-gradient-primary w-100 my-4 mb-2">Sign in</button>
+                  </div>
+                  <p class="mt-4 text-sm text-center">
+                    Don't have an account?
+                    <a href="{{ url_for('sign_up') }}" class="text-primary text-gradient font-weight-bold">Sign up</a>
+                  </p>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+</body>
+
+</html>
